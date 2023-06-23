@@ -1,4 +1,6 @@
-# #################### #
-#  ignore virtual env  #
-# #################### #
+#  ignore virtual env
 wikipedia_scraper_env/
+# ignore temp python files
+utils/__pycache__/
+# ignore json files
+*.json
