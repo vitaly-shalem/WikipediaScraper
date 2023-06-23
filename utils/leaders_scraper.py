@@ -18,15 +18,15 @@ def get_text(url, cookie, sn):
     wpc = wp.text
     return wpc, wp.status_code
 
-def get_first_paragraph(wiki_url, sn):
+def get_first_paragraph(wiki_url, sn, cookie):
     """ Gets the first paragraph from wiki page and cleans it """
     content = None  # empty
     cookie = None   # empty
-    status = 403    # no cookie by defaukt
+    status = None    # no cookie by defaukt
     # get text, try untill status is ok, if no cookie - create one
     while status != 200:
         if status == 403:
-            cookie = requests.get(wiki_url).cookies
+            cookie = sn.get('https://httpbin.org/cookies').cookies
         content, status = get_text(wiki_url, cookie, sn)
     # make soup
     s = BeautifulSoup(content, "html.parser")
@@ -62,10 +62,11 @@ def get_leaders():
     lpc = {c:requests.get(url+"leaders", cookies=cookie, params={"country": c}).json() for c in countries}
     # create session
     sn = requests.Session()
-    sn.get("https://www.wikipedia.org/")
+    sn.get('https://httpbin.org/cookies/set/sessioncookie/123456789')
+    cks = sn.get('https://httpbin.org/cookies').cookies
     for key, vList in lpc.items():
         for index, vDict in enumerate(vList):
-            lpc[key][index]["first_paragraph"] = get_first_paragraph(vDict["wikipedia_url"], sn)
+            lpc[key][index]["first_paragraph"] = get_first_paragraph(vDict["wikipedia_url"], sn, cks)
     return lpc
 
 def save(lpc):
