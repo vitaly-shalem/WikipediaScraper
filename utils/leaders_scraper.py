@@ -11,23 +11,25 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
-def get_text(url, cookie, sn):
+url_wiki = "https://www.wikipedia.org/"
+_cookies = None
+
+def get_text(url, session):
     """ Gets text from wiki url;
         Returns content and status """
-    wp = sn.get(url, cookies=cookie)
+    wp = session.get(url, cookies=_cookies)
     wpc = wp.text
     return wpc, wp.status_code
 
-def get_first_paragraph(wiki_url, sn, cookie):
+def get_first_paragraph(leader_wiki_url, session):
     """ Gets the first paragraph from wiki page and cleans it """
     content = None  # empty
-    cookie = None   # empty
-    status = None    # no cookie by defaukt
-    # get text, try untill status is ok, if no cookie - create one
+    status = None   # None to start the loop
+    # get text, try untill status is ok, if no cookies - create
     while status != 200:
         if status == 403:
-            cookie = sn.get('https://httpbin.org/cookies').cookies
-        content, status = get_text(wiki_url, cookie, sn)
+            _cookies = session.get(url_wiki).cookies
+        content, status = get_text(leader_wiki_url, session)
     # make soup
     s = BeautifulSoup(content, "html.parser")
     paragraphs = s.find_all("p")
@@ -54,19 +56,25 @@ def get_leaders():
         Finds the first paragraph of a wiki page for each leader;
         Updates leaders per country data """
     url = "https://country-leaders.onrender.com/"
+    url_cookies = url + "cookie"
+    url_countries = url + "countries"
+    url_leaders = url + "leaders"
     # make cookie
-    cookie = requests.get(url+"cookie").cookies
+    _cookies = requests.get(url_cookies).cookies
     # retrieve country codes
-    countries = requests.get(url+"countries", cookies=cookie).json()
+    countries = requests.get(url_countries, cookies=_cookies).json()
     # retrieve leaders informations
-    lpc = {c:requests.get(url+"leaders", cookies=cookie, params={"country": c}).json() for c in countries}
+    lpc = {c:requests.get(url_leaders, cookies=_cookies, params={"country": c}).json() for c in countries}
     # create session
-    sn = requests.Session()
-    sn.get('https://httpbin.org/cookies/set/sessioncookie/123456789')
-    cks = sn.get('https://httpbin.org/cookies').cookies
+    session = requests.Session()
+    session.get(url_wiki)
+    _cookies = session.get(url_wiki).cookies
     for key, vList in lpc.items():
+        # create session
+        #sn_url = re.sub(r"(?<=org/)(.*)(?=$)", "", vList[0]["wikipedia_url"])
+        #sn.get(sn_url)
         for index, vDict in enumerate(vList):
-            lpc[key][index]["first_paragraph"] = get_first_paragraph(vDict["wikipedia_url"], sn, cks)
+            lpc[key][index]["first_paragraph"] = get_first_paragraph(vDict["wikipedia_url"], session)
     return lpc
 
 def save(lpc):

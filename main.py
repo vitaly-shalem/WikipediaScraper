@@ -22,6 +22,6 @@ if __name__ == "__main__":
         # save results in a json file
         print("Saving results...")
         output_file = save(leaders_per_country)
-        print("Please, check leaders.json in the project folder...")
+        print(f"Please, check {output_file} in the project folder...")
     except getopt.GetoptError:
         sys.exit(-1)
