@@ -19,9 +19,12 @@ if __name__ == "__main__":
         # scrape leaders data
         print("Retrieving data...")
         leaders_per_country = get_leaders()
+
         # save results in a json file
         print("Saving results...")
         output_file = save(leaders_per_country)
+
         print(f"Please, check {output_file} in the project folder...")
+        
     except getopt.GetoptError:
         sys.exit(-1)
